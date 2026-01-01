@@ -79,7 +79,7 @@ const LinkModal: React.FC<LinkModalProps> = ({ isOpen, onClose, onSave, onCreate
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden">
                 <div className="flex items-center justify-between p-4 border-b border-gray-100">
                     <h3 className="font-semibold text-gray-900">Insert Link</h3>
                     <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded-full text-gray-500">

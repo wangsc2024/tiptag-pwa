@@ -25,7 +25,7 @@ export default function UpdatePrompt() {
   if (!needRefresh) return null;
 
   return (
-    <div className="fixed bottom-4 left-4 z-50 max-w-sm animate-in slide-in-from-bottom-5 fade-in duration-300">
+    <div className="fixed bottom-4 left-4 z-50 max-w-sm">
       <div className="bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden">
         <div className="bg-gradient-to-r from-indigo-500 to-purple-600 px-4 py-2">
           <div className="flex items-center justify-between">

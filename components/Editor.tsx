@@ -311,7 +311,7 @@ const Editor: React.FC<EditorProps> = ({ content, title, onUpdate, onTitleChange
                     {showAiMenu && (
                         <>
                             <div className="fixed inset-0 z-10" onClick={() => setShowAiMenu(false)} />
-                            <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-20 animate-in fade-in slide-in-from-top-2 duration-200">
+                            <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-20">
                                 <div className="p-2 space-y-1">
                                     <div className="px-2 py-1.5 text-xs font-semibold text-gray-400 uppercase tracking-wider">
                                         Selection Actions
@@ -351,7 +351,7 @@ const Editor: React.FC<EditorProps> = ({ content, title, onUpdate, onTitleChange
       {/* Bubble Menu (Selection) */}
       {bubbleMenuPos && (
         <div 
-            className="fixed z-50 flex items-center space-x-1 bg-white shadow-xl border border-gray-200 rounded-lg p-1.5 overflow-hidden animate-in fade-in zoom-in-95 duration-100"
+            className="fixed z-50 flex items-center space-x-1 bg-white shadow-xl border border-gray-200 rounded-lg p-1.5 overflow-hidden"
             style={{ 
                 top: bubbleMenuPos.top - 50, 
                 left: bubbleMenuPos.left,
@@ -387,7 +387,7 @@ const Editor: React.FC<EditorProps> = ({ content, title, onUpdate, onTitleChange
       {/* Floating Menu (Empty Line) */}
       {floatingMenuPos && (
         <div 
-            className="fixed z-50 flex items-center space-x-1 bg-white shadow-xl border border-gray-200 rounded-lg p-1.5 overflow-hidden animate-in slide-in-from-left-2 fade-in duration-100"
+            className="fixed z-50 flex items-center space-x-1 bg-white shadow-xl border border-gray-200 rounded-lg p-1.5 overflow-hidden"
             style={{
                 top: floatingMenuPos.top,
                 left: floatingMenuPos.left,
@@ -429,7 +429,7 @@ const Editor: React.FC<EditorProps> = ({ content, title, onUpdate, onTitleChange
 
       {/* Error Toast */}
       {aiError && (
-        <div className="absolute bottom-6 right-6 bg-red-50 text-red-600 px-4 py-3 rounded-lg shadow-lg border border-red-100 flex items-center animate-in slide-in-from-bottom-5">
+        <div className="absolute bottom-6 right-6 bg-red-50 text-red-600 px-4 py-3 rounded-lg shadow-lg border border-red-100 flex items-center">
             <AlertCircle className="w-5 h-5 mr-2" />
             <span className="text-sm font-medium">{aiError}</span>
             <button onClick={() => setAiError(null)} className="ml-4 hover:bg-red-100 p-1 rounded">
