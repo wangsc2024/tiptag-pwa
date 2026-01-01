@@ -20,6 +20,7 @@ const LinkModal: React.FC<LinkModalProps> = ({ isOpen, onClose, onSave, onCreate
 
     useEffect(() => {
         if (isOpen) {
+            console.log('LinkModal opened with documents:', documents.map(d => ({ id: d.id, title: d.title })));
             setUrl(initialUrl || '');
             setSearchTerm('');
             setSelectedDocId(null);
@@ -33,7 +34,7 @@ const LinkModal: React.FC<LinkModalProps> = ({ isOpen, onClose, onSave, onCreate
                 setMode('url');
             }
         }
-    }, [isOpen, initialUrl]);
+    }, [isOpen, initialUrl, documents]);
 
     if (!isOpen) return null;
 
@@ -53,11 +54,20 @@ const LinkModal: React.FC<LinkModalProps> = ({ isOpen, onClose, onSave, onCreate
     };
 
     const handleSelectDoc = (docId: string) => {
+        console.log('Document selected:', docId);
+        const doc = documents.find(d => d.id === docId);
+        console.log('Selected document details:', doc?.title, doc?.id);
         setSelectedDocId(docId);
     };
 
     const handleSavePageLink = () => {
         if (selectedDocId) {
+            const doc = documents.find(d => d.id === selectedDocId);
+            console.log('Saving page link:', {
+                selectedDocId,
+                docTitle: doc?.title,
+                url: `internal://${selectedDocId}`
+            });
             onSave(`internal://${selectedDocId}`);
             onClose();
         }

@@ -88,8 +88,10 @@ const Editor: React.FC<EditorProps> = ({ content, title, onUpdate, onTitleChange
             if (link && link.href) {
                 event.preventDefault();
                 const href = link.getAttribute('href') || '';
+                console.log('Link clicked:', { href, linkElement: link.outerHTML });
                 if (href.startsWith('internal://')) {
                     const docId = href.replace('internal://', '');
+                    console.log('Navigating to internal document:', docId);
                     onNavigate(docId);
                 } else if (href.startsWith('#')) {
                     // Anchor link - scroll to element
