@@ -1,5 +1,5 @@
 
-import { describe, it, expect, vi, beforeEach } from '../lib/vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { generateAIContent, _setClient } from './geminiService';
 import { AISuggestionType } from '../types';
 

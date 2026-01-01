@@ -1,5 +1,5 @@
 
-import { describe, it, expect, beforeEach, vi } from '../lib/vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { getDocuments, saveDocuments, createDocument, updateDocument, deleteDocument } from './storage';
 import { Document } from '../types';
 
