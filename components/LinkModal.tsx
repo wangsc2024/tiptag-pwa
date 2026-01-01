@@ -16,14 +16,16 @@ const LinkModal: React.FC<LinkModalProps> = ({ isOpen, onClose, onSave, onCreate
     const [url, setUrl] = useState('');
     const [anchorId, setAnchorId] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
-    const [showPreview, setShowPreview] = useState(false);
+    const [selectedDocId, setSelectedDocId] = useState<string | null>(null);
 
     useEffect(() => {
         if (isOpen) {
             setUrl(initialUrl || '');
             setSearchTerm('');
+            setSelectedDocId(null);
             if (initialUrl?.startsWith('internal://')) {
                 setMode('internal');
+                setSelectedDocId(initialUrl.replace('internal://', ''));
             } else if (initialUrl?.startsWith('#')) {
                 setMode('anchor');
                 setAnchorId(initialUrl.slice(1));
@@ -51,8 +53,14 @@ const LinkModal: React.FC<LinkModalProps> = ({ isOpen, onClose, onSave, onCreate
     };
 
     const handleSelectDoc = (docId: string) => {
-        onSave(`internal://${docId}`);
-        onClose();
+        setSelectedDocId(docId);
+    };
+
+    const handleSavePageLink = () => {
+        if (selectedDocId) {
+            onSave(`internal://${selectedDocId}`);
+            onClose();
+        }
     };
 
     const handleRemoveLink = () => {
@@ -227,7 +235,7 @@ const LinkModal: React.FC<LinkModalProps> = ({ isOpen, onClose, onSave, onCreate
                                     autoFocus
                                 />
                             </div>
-                            <div className="flex-1 overflow-y-auto space-y-1 pr-1">
+                            <div className="flex-1 overflow-y-auto space-y-1 pr-1 mb-3">
                                 {/* Create new document option */}
                                 {onCreateDocument && (
                                     <button
@@ -247,13 +255,23 @@ const LinkModal: React.FC<LinkModalProps> = ({ isOpen, onClose, onSave, onCreate
                                     <button
                                         key={doc.id}
                                         onClick={() => handleSelectDoc(doc.id)}
-                                        className="w-full flex items-center text-left p-2 hover:bg-indigo-50 rounded-lg transition-colors group"
+                                        className={`w-full flex items-center text-left p-2 rounded-lg transition-colors group ${
+                                            selectedDocId === doc.id
+                                                ? 'bg-indigo-100 ring-2 ring-indigo-500'
+                                                : 'hover:bg-indigo-50'
+                                        }`}
                                     >
-                                        <div className="p-2 bg-gray-100 text-gray-500 rounded-md mr-3 group-hover:bg-indigo-100 group-hover:text-indigo-600">
+                                        <div className={`p-2 rounded-md mr-3 ${
+                                            selectedDocId === doc.id
+                                                ? 'bg-indigo-500 text-white'
+                                                : 'bg-gray-100 text-gray-500 group-hover:bg-indigo-100 group-hover:text-indigo-600'
+                                        }`}>
                                             <FileText className="w-4 h-4" />
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <div className="text-sm font-medium text-gray-900 truncate">{doc.title}</div>
+                                            <div className={`text-sm font-medium truncate ${
+                                                selectedDocId === doc.id ? 'text-indigo-900' : 'text-gray-900'
+                                            }`}>{doc.title}</div>
                                             <div className="text-xs text-gray-400">{new Date(doc.updatedAt).toLocaleDateString()}</div>
                                         </div>
                                     </button>
@@ -264,6 +282,13 @@ const LinkModal: React.FC<LinkModalProps> = ({ isOpen, onClose, onSave, onCreate
                                     </div>
                                 )}
                             </div>
+                            <button
+                                onClick={handleSavePageLink}
+                                disabled={!selectedDocId}
+                                className="w-full py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                Set Page Link
+                            </button>
                         </div>
                     )}
                 </div>
