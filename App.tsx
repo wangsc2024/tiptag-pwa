@@ -4,7 +4,7 @@ import Editor from './components/Editor';
 import TemplateModal from './components/TemplateModal';
 import GitHubSyncModal from './components/GitHubSyncModal';
 import TestRunnerUI from './components/TestRunnerUI';
-import UpdatePrompt from './components/UpdatePrompt';
+// import UpdatePrompt from './components/UpdatePrompt';
 import { Document } from './types';
 import { Template } from './services/templates';
 import { getDocuments, saveDocuments, createDocument, updateDocument, deleteDocument } from './services/storage';
@@ -169,8 +169,8 @@ const App: React.FC = () => {
         onClose={() => setIsTestRunnerOpen(false)}
       />
 
-      {/* PWA Update Prompt */}
-      <UpdatePrompt />
+      {/* PWA Update Prompt - disabled for debugging */}
+      {/* <UpdatePrompt /> */}
     </div>
   );
 };

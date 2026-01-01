@@ -17,7 +17,8 @@ import {
     Image as ImageIcon, ExternalLink, ArrowRightCircle,
     Underline as UnderlineIcon, Highlighter, FileCode, Type
 } from 'lucide-react';
-import { generateAIContent } from '../services/geminiService';
+// AI disabled for debugging
+// import { generateAIContent } from '../services/geminiService';
 import { AISuggestionType, Document } from '../types';
 import LinkModal from './LinkModal';
 import { configureSlashCommand } from './SlashCommand';
@@ -171,41 +172,10 @@ const Editor: React.FC<EditorProps> = ({ content, title, onUpdate, onTitleChange
   }, []);
 
   const handleAiAction = async (type: AISuggestionType) => {
-    if (!editor) return;
-    
-    const { from, to, empty } = editor.state.selection;
-    const selectedText = empty 
-        ? editor.getText() 
-        : editor.state.doc.textBetween(from, to, ' ');
-
-    if (!selectedText.trim()) {
-        setAiError("Please type something or select text first.");
-        setTimeout(() => setAiError(null), 3000);
-        return;
-    }
-
-    setIsAiLoading(true);
-    setAiError(null);
+    // AI functionality disabled
+    setAiError("AI features are currently disabled.");
+    setTimeout(() => setAiError(null), 3000);
     setShowAiMenu(false);
-
-    try {
-      const generatedText = await generateAIContent(type, selectedText);
-      
-      if (generatedText) {
-        if (!empty && (type === AISuggestionType.FIX_GRAMMAR || type === AISuggestionType.REPHRASE)) {
-            editor.chain().focus().deleteSelection().insertContent(generatedText).run();
-        } else {
-            const insertion = empty 
-                ? `\n\n${generatedText}` 
-                : `\n\n**AI Suggestion:**\n${generatedText}`;
-            editor.chain().focus().insertContentAt(to, insertion).run();
-        }
-      }
-    } catch (err) {
-      setAiError("AI Request failed. Check your API key or connection.");
-    } finally {
-      setIsAiLoading(false);
-    }
   };
 
   if (!editor) {
