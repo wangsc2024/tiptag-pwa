@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
@@ -41,7 +41,7 @@ const Editor: React.FC<EditorProps> = ({ content, title, onUpdate, onTitleChange
   // Custom Menu State
   const [bubbleMenuPos, setBubbleMenuPos] = useState<{top: number, left: number} | null>(null);
   const [floatingMenuPos, setFloatingMenuPos] = useState<{top: number, left: number} | null>(null);
-  const [savedSelection, setSavedSelection] = useState<{from: number, to: number} | null>(null);
+  const savedSelectionRef = useRef<{from: number, to: number} | null>(null);
 
   const editor = useEditor({
     extensions: [
@@ -153,7 +153,8 @@ const Editor: React.FC<EditorProps> = ({ content, title, onUpdate, onTitleChange
   const openLinkModal = useCallback(() => {
       if (editor) {
         const { from, to } = editor.state.selection;
-        setSavedSelection({ from, to });
+        savedSelectionRef.current = { from, to };
+        console.log('Saved selection:', { from, to });
       }
       setIsLinkModalOpen(true);
   }, [editor]);
@@ -161,22 +162,39 @@ const Editor: React.FC<EditorProps> = ({ content, title, onUpdate, onTitleChange
   const handleLinkSave = useCallback((url: string) => {
     if (!editor) return;
 
-    // Restore saved selection
-    if (savedSelection) {
-      editor.chain().focus().setTextSelection(savedSelection).run();
-    }
+    const selection = savedSelectionRef.current;
+    console.log('handleLinkSave called with url:', url, 'selection:', selection);
 
-    // If empty, unset
+    // If empty, unset link
     if (url === '') {
-      editor.chain().focus().extendMarkRange('link').unsetLink().run();
-      setSavedSelection(null);
+      if (selection && selection.from !== selection.to) {
+        editor.chain()
+          .focus()
+          .setTextSelection(selection)
+          .unsetLink()
+          .run();
+      } else {
+        editor.chain().focus().unsetLink().run();
+      }
+      savedSelectionRef.current = null;
       return;
     }
 
-    // Set link
-    editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
-    setSavedSelection(null);
-  }, [editor, savedSelection]);
+    // Set link with restored selection
+    if (selection && selection.from !== selection.to) {
+      console.log('Setting link with selection:', selection);
+      editor.chain()
+        .focus()
+        .setTextSelection(selection)
+        .setLink({ href: url })
+        .run();
+      console.log('Link set, checking result:', editor.getAttributes('link'));
+    } else {
+      console.warn('No valid selection to apply link');
+      editor.chain().focus().setLink({ href: url }).run();
+    }
+    savedSelectionRef.current = null;
+  }, [editor]);
 
   const openLink = useCallback(() => {
       if (!editor) return;
