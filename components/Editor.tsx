@@ -81,6 +81,28 @@ const Editor: React.FC<EditorProps> = ({ content, title, onUpdate, onTitleChange
         attributes: {
             class: 'prose prose-lg prose-slate focus:outline-none max-w-none',
         },
+        handleClick: (view, pos, event) => {
+            const target = event.target as HTMLElement;
+            const link = target.closest('a');
+            if (link && link.href) {
+                event.preventDefault();
+                const href = link.getAttribute('href') || '';
+                if (href.startsWith('internal://')) {
+                    const docId = href.replace('internal://', '');
+                    onNavigate(docId);
+                } else if (href.startsWith('#')) {
+                    // Anchor link - scroll to element
+                    const element = document.getElementById(href.slice(1));
+                    if (element) {
+                        element.scrollIntoView({ behavior: 'smooth' });
+                    }
+                } else {
+                    window.open(href, '_blank', 'noopener,noreferrer');
+                }
+                return true;
+            }
+            return false;
+        },
     },
     content: content,
     onUpdate: ({ editor }) => {
