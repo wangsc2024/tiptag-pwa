@@ -3,10 +3,11 @@ import Sidebar from './components/Sidebar';
 import Editor from './components/Editor';
 import TemplateModal from './components/TemplateModal';
 import GitHubSyncModal from './components/GitHubSyncModal';
+import TestRunnerUI from './components/TestRunnerUI';
 import { Document } from './types';
 import { Template } from './services/templates';
 import { getDocuments, saveDocuments, createDocument, updateDocument, deleteDocument } from './services/storage';
-import { Menu } from 'lucide-react';
+import { Menu, Beaker } from 'lucide-react';
 
 const App: React.FC = () => {
   const [documents, setDocuments] = useState<Document[]>([]);
@@ -14,6 +15,7 @@ const App: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
   const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
+  const [isTestRunnerOpen, setIsTestRunnerOpen] = useState(false);
 
   // Load documents on mount
   useEffect(() => {
@@ -111,6 +113,17 @@ const App: React.FC = () => {
                 <Menu className="w-5 h-5" />
              </button>
         </div>
+        
+        {/* Test Runner Button (Dev Mode) */}
+        <div className="absolute top-4 right-4 z-20">
+             <button 
+                onClick={() => setIsTestRunnerOpen(true)}
+                className="p-2 bg-gray-100 hover:bg-gray-200 rounded-md text-gray-600 transition-colors"
+                title="Run Tests"
+             >
+                <Beaker className="w-5 h-5" />
+             </button>
+        </div>
 
         {activeDoc ? (
           <Editor 
@@ -119,6 +132,8 @@ const App: React.FC = () => {
             title={activeDoc.title}
             onUpdate={handleUpdateContent}
             onTitleChange={handleUpdateTitle}
+            documents={documents}
+            onNavigate={setActiveDocId}
           />
         ) : (
           <div className="flex-1 flex items-center justify-center bg-gray-50 text-gray-400">
@@ -146,6 +161,11 @@ const App: React.FC = () => {
         onClose={() => setIsSyncModalOpen(false)}
         documents={documents}
         onPullComplete={handlePullComplete}
+      />
+
+      <TestRunnerUI 
+        isOpen={isTestRunnerOpen}
+        onClose={() => setIsTestRunnerOpen(false)}
       />
     </div>
   );

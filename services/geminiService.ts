@@ -1,7 +1,13 @@
+
 import { GoogleGenAI } from "@google/genai";
 import { AISuggestionType } from '../types';
 
-let aiClient: GoogleGenAI | null = null;
+let aiClient: any = null; // Use any to allow mocks
+
+// For Testing Purposes
+export const _setClient = (client: any) => {
+    aiClient = client;
+};
 
 const getClient = () => {
   if (!aiClient) {

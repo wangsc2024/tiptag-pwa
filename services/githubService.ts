@@ -1,3 +1,4 @@
+
 import { Octokit } from "@octokit/rest";
 import { Document } from "../types";
 
@@ -8,6 +9,10 @@ interface GithubConfig {
     owner: string;
     repo: string;
 }
+
+// For Testing
+let OctokitClass: any = Octokit;
+export const _setOctokitClass = (cls: any) => OctokitClass = cls;
 
 export const saveGithubConfig = (config: GithubConfig) => {
     localStorage.setItem(GITHUB_CONFIG_KEY, JSON.stringify(config));
@@ -22,7 +27,7 @@ export const syncToGithub = async (documents: Document[]): Promise<{ pushed: num
     const config = getGithubConfig();
     if (!config) throw new Error("GitHub configuration missing.");
 
-    const octokit = new Octokit({ auth: config.token });
+    const octokit = new OctokitClass({ auth: config.token });
 
     let pushed = 0;
     let skipped = 0;
@@ -70,7 +75,7 @@ export const pullFromGithub = async (): Promise<Document[]> => {
     const config = getGithubConfig();
     if (!config) throw new Error("GitHub configuration missing.");
 
-    const octokit = new Octokit({ auth: config.token });
+    const octokit = new OctokitClass({ auth: config.token });
     const newDocs: Document[] = [];
 
     try {
