@@ -41,6 +41,7 @@ const Editor: React.FC<EditorProps> = ({ content, title, onUpdate, onTitleChange
   // Custom Menu State
   const [bubbleMenuPos, setBubbleMenuPos] = useState<{top: number, left: number} | null>(null);
   const [floatingMenuPos, setFloatingMenuPos] = useState<{top: number, left: number} | null>(null);
+  const [savedSelection, setSavedSelection] = useState<{from: number, to: number} | null>(null);
 
   const editor = useEditor({
     extensions: [
@@ -150,21 +151,32 @@ const Editor: React.FC<EditorProps> = ({ content, title, onUpdate, onTitleChange
   }, [content, editor]);
 
   const openLinkModal = useCallback(() => {
+      if (editor) {
+        const { from, to } = editor.state.selection;
+        setSavedSelection({ from, to });
+      }
       setIsLinkModalOpen(true);
-  }, []);
+  }, [editor]);
 
   const handleLinkSave = useCallback((url: string) => {
     if (!editor) return;
-    
+
+    // Restore saved selection
+    if (savedSelection) {
+      editor.chain().focus().setTextSelection(savedSelection).run();
+    }
+
     // If empty, unset
     if (url === '') {
       editor.chain().focus().extendMarkRange('link').unsetLink().run();
+      setSavedSelection(null);
       return;
     }
 
     // Set link
     editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
-  }, [editor]);
+    setSavedSelection(null);
+  }, [editor, savedSelection]);
 
   const openLink = useCallback(() => {
       if (!editor) return;
