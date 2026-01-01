@@ -6,12 +6,16 @@ import Link from '@tiptap/extension-link';
 import Image from '@tiptap/extension-image';
 import TaskList from '@tiptap/extension-task-list';
 import TaskItem from '@tiptap/extension-task-item';
-import { 
-    Bold, Italic, Strikethrough, Code, Link as LinkIcon, 
+import Highlight from '@tiptap/extension-highlight';
+import Underline from '@tiptap/extension-underline';
+import CharacterCount from '@tiptap/extension-character-count';
+import {
+    Bold, Italic, Strikethrough, Code, Link as LinkIcon,
     List, ListOrdered, CheckSquare, Quote, Minus,
-    Heading1, Heading2, Undo, Redo,
+    Heading1, Heading2, Heading3, Undo, Redo,
     Wand2, Check, X, Loader2, Sparkles, AlertCircle,
-    Image as ImageIcon, ExternalLink, ArrowRightCircle
+    Image as ImageIcon, ExternalLink, ArrowRightCircle,
+    Underline as UnderlineIcon, Highlighter, FileCode, Type
 } from 'lucide-react';
 import { generateAIContent } from '../services/geminiService';
 import { AISuggestionType, Document } from '../types';
@@ -59,6 +63,16 @@ const Editor: React.FC<EditorProps> = ({ content, title, onUpdate, onTitleChange
       TaskList,
       TaskItem.configure({
         nested: true,
+      }),
+      Highlight.configure({
+        multicolor: false,
+        HTMLAttributes: {
+            class: 'bg-yellow-200',
+        },
+      }),
+      Underline,
+      CharacterCount.configure({
+        limit: null,
       }),
       configureSlashCommand(),
     ],
@@ -242,20 +256,66 @@ const Editor: React.FC<EditorProps> = ({ content, title, onUpdate, onTitleChange
                 icon={<Italic className="w-4 h-4" />}
                 title="Italic"
             />
-             <ToolbarButton 
+             <ToolbarButton
+                onClick={() => editor.chain().focus().toggleUnderline().run()}
+                isActive={editor.isActive('underline')}
+                icon={<UnderlineIcon className="w-4 h-4" />}
+                title="Underline"
+            />
+             <ToolbarButton
                 onClick={() => editor.chain().focus().toggleStrike().run()}
                 isActive={editor.isActive('strike')}
                 icon={<Strikethrough className="w-4 h-4" />}
                 title="Strikethrough"
             />
-             <ToolbarButton 
+             <ToolbarButton
+                onClick={() => editor.chain().focus().toggleHighlight().run()}
+                isActive={editor.isActive('highlight')}
+                icon={<Highlighter className="w-4 h-4" />}
+                title="Highlight"
+            />
+             <ToolbarButton
                 onClick={() => editor.chain().focus().toggleCode().run()}
                 isActive={editor.isActive('code')}
                 icon={<Code className="w-4 h-4" />}
                 title="Inline Code"
             />
              <div className="w-px h-6 bg-gray-200 mx-2" />
-             <ToolbarButton 
+             <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider hidden md:inline-block mr-2">
+                Blocks
+            </span>
+             <ToolbarButton
+                onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+                isActive={editor.isActive('heading', { level: 1 })}
+                icon={<Heading1 className="w-4 h-4" />}
+                title="Heading 1"
+            />
+             <ToolbarButton
+                onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+                isActive={editor.isActive('heading', { level: 2 })}
+                icon={<Heading2 className="w-4 h-4" />}
+                title="Heading 2"
+            />
+             <ToolbarButton
+                onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+                isActive={editor.isActive('heading', { level: 3 })}
+                icon={<Heading3 className="w-4 h-4" />}
+                title="Heading 3"
+            />
+             <ToolbarButton
+                onClick={() => editor.chain().focus().setParagraph().run()}
+                isActive={editor.isActive('paragraph') && !editor.isActive('heading')}
+                icon={<Type className="w-4 h-4" />}
+                title="Paragraph"
+            />
+             <ToolbarButton
+                onClick={() => editor.chain().focus().toggleCodeBlock().run()}
+                isActive={editor.isActive('codeBlock')}
+                icon={<FileCode className="w-4 h-4" />}
+                title="Code Block"
+            />
+             <div className="w-px h-6 bg-gray-200 mx-2" />
+             <ToolbarButton
                 onClick={addImage}
                 icon={<ImageIcon className="w-4 h-4" />}
                 title="Insert Image"
@@ -331,11 +391,14 @@ const Editor: React.FC<EditorProps> = ({ content, title, onUpdate, onTitleChange
         >
             <ToolbarButton onClick={() => editor.chain().focus().toggleBold().run()} isActive={editor.isActive('bold')} icon={<Bold className="w-4 h-4" />} title="Bold" />
             <ToolbarButton onClick={() => editor.chain().focus().toggleItalic().run()} isActive={editor.isActive('italic')} icon={<Italic className="w-4 h-4" />} title="Italic" />
+            <ToolbarButton onClick={() => editor.chain().focus().toggleUnderline().run()} isActive={editor.isActive('underline')} icon={<UnderlineIcon className="w-4 h-4" />} title="Underline" />
             <ToolbarButton onClick={() => editor.chain().focus().toggleStrike().run()} isActive={editor.isActive('strike')} icon={<Strikethrough className="w-4 h-4" />} title="Strikethrough" />
+            <ToolbarButton onClick={() => editor.chain().focus().toggleHighlight().run()} isActive={editor.isActive('highlight')} icon={<Highlighter className="w-4 h-4" />} title="Highlight" />
             <ToolbarButton onClick={() => editor.chain().focus().toggleCode().run()} isActive={editor.isActive('code')} icon={<Code className="w-4 h-4" />} title="Code" />
             <div className="w-px h-4 bg-gray-200 mx-1" />
             <ToolbarButton onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} isActive={editor.isActive('heading', { level: 1 })} icon={<Heading1 className="w-4 h-4" />} title="H1" />
             <ToolbarButton onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} isActive={editor.isActive('heading', { level: 2 })} icon={<Heading2 className="w-4 h-4" />} title="H2" />
+            <ToolbarButton onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()} isActive={editor.isActive('heading', { level: 3 })} icon={<Heading3 className="w-4 h-4" />} title="H3" />
             <div className="w-px h-4 bg-gray-200 mx-1" />
             <ToolbarButton onClick={openLinkModal} isActive={editor.isActive('link')} icon={<LinkIcon className="w-4 h-4" />} title="Link" />
             {editor.isActive('link') && (
@@ -375,13 +438,24 @@ const Editor: React.FC<EditorProps> = ({ content, title, onUpdate, onTitleChange
         </div>
       )}
 
-      <LinkModal 
+      <LinkModal
         isOpen={isLinkModalOpen}
         onClose={() => setIsLinkModalOpen(false)}
         onSave={handleLinkSave}
         documents={documents}
         initialUrl={editor.getAttributes('link').href}
       />
+
+      {/* Character Count */}
+      <div className="sticky bottom-0 z-10 flex items-center justify-between px-4 py-2 bg-gray-50 border-t border-gray-100 text-xs text-gray-500">
+        <div className="flex items-center space-x-4">
+          <span>{editor.storage.characterCount.characters()} characters</span>
+          <span>{editor.storage.characterCount.words()} words</span>
+        </div>
+        <div className="flex items-center space-x-2">
+          <span className="text-gray-400">Saved automatically</span>
+        </div>
+      </div>
 
       {/* Error Toast */}
       {aiError && (

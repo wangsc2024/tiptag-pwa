@@ -11,8 +11,11 @@ export const _setClient = (client: any) => {
 
 const getClient = () => {
   if (!aiClient) {
-    // process.env.API_KEY is guaranteed to be available per system instructions
-    aiClient = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const apiKey = process.env.API_KEY || process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      throw new Error("GEMINI_API_KEY is not configured. Please add it to your environment.");
+    }
+    aiClient = new GoogleGenAI({ apiKey });
   }
   return aiClient;
 };
