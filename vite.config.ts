@@ -76,6 +76,14 @@ export default defineConfig(({ mode }) => {
           '@': path.resolve(__dirname, '.'),
         }
       },
+      build: {
+        rollupOptions: {
+          external: [
+            /\.test\.(ts|tsx)$/,
+            /lib\/vitest/,
+          ],
+        },
+      },
       test: {
         globals: true,
         environment: 'jsdom',
