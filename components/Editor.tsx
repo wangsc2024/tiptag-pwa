@@ -55,6 +55,7 @@ const Editor: React.FC<EditorProps> = ({ content, title, onUpdate, onTitleChange
       }),
       Link.configure({
         openOnClick: false,
+        protocols: ['internal', 'mailto', 'tel'],  // Allow internal:// protocol for page links
         HTMLAttributes: {
             class: 'text-indigo-600 underline cursor-pointer',
         },
