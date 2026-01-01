@@ -1,0 +1,5 @@
+{
+  "name": "Nova Knowledge Base",
+  "description": "A modern, AI-powered knowledge base editor built with React, Tiptap, and Gemini. Features a distraction-free writing interface and smart assistance.",
+  "requestFramePermissions": []
+}
