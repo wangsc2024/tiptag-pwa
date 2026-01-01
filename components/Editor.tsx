@@ -168,11 +168,12 @@ const Editor: React.FC<EditorProps> = ({ content, title, onUpdate, onTitleChange
     // If empty, unset link
     if (url === '') {
       if (selection && selection.from !== selection.to) {
-        editor.chain()
-          .focus()
-          .setTextSelection(selection)
-          .unsetLink()
-          .run();
+        // Remove link mark using transaction
+        const { from, to } = selection;
+        const linkMark = editor.schema.marks.link;
+        editor.view.dispatch(
+          editor.state.tr.removeMark(from, to, linkMark)
+        );
       } else {
         editor.chain().focus().unsetLink().run();
       }
@@ -180,15 +181,20 @@ const Editor: React.FC<EditorProps> = ({ content, title, onUpdate, onTitleChange
       return;
     }
 
-    // Set link with restored selection
+    // Set link using ProseMirror transaction (more reliable)
     if (selection && selection.from !== selection.to) {
       console.log('Setting link with selection:', selection);
-      editor.chain()
-        .focus()
-        .setTextSelection(selection)
-        .setLink({ href: url })
-        .run();
-      console.log('Link set, checking result:', editor.getAttributes('link'));
+      const { from, to } = selection;
+      const linkMark = editor.schema.marks.link.create({ href: url });
+
+      // Use transaction to add mark at saved positions
+      editor.view.dispatch(
+        editor.state.tr.addMark(from, to, linkMark)
+      );
+
+      // Focus editor after setting link
+      editor.commands.focus();
+      console.log('Link set via transaction');
     } else {
       console.warn('No valid selection to apply link');
       editor.chain().focus().setLink({ href: url }).run();
