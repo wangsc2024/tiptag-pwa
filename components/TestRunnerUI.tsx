@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { executeRegistered } from '../lib/vitest';
+// Browser-based test runner disabled - tests now use real vitest CLI
+// import { executeRegistered } from '../lib/vitest';
 import { X, Play, CheckCircle, XCircle, Terminal } from 'lucide-react';
 
-// Import test files to register them
-// Adding .ts extension explicitely can help with some browser-based loaders
-import '../services/storage.test.ts';
-// Disabled - @google/genai uses process.env which fails in browser
+// Test imports disabled - vitest doesn't work in browser
+// import '../services/storage.test.ts';
 // import '../services/geminiService.test.ts';
-import '../services/githubService.test.ts';
-import './SlashCommand.test.ts';
+// import '../services/githubService.test.ts';
+// import './SlashCommand.test.ts';
 
 interface TestResult {
     suite: string;
@@ -28,24 +27,14 @@ const TestRunnerUI: React.FC<TestRunnerUIProps> = ({ isOpen, onClose }) => {
     const [stats, setStats] = useState({ pass: 0, fail: 0, total: 0 });
 
     const run = async () => {
-        setIsRunning(true);
-        setResults([]);
-        
-        // Small delay to allow render
-        setTimeout(async () => {
-            try {
-                const res = await executeRegistered();
-                setResults([...res]); // Clone array
-                
-                const pass = res.filter(r => r.status === 'pass').length;
-                const fail = res.filter(r => r.status === 'fail').length;
-                setStats({ pass, fail, total: res.length });
-            } catch (e) {
-                console.error("Runner crashed", e);
-            } finally {
-                setIsRunning(false);
-            }
-        }, 100);
+        // Browser-based test runner disabled
+        // Tests should be run via CLI: npm run test:run
+        setResults([{
+            suite: 'Info',
+            name: 'Run tests via CLI: npm run test:run',
+            status: 'pass'
+        }]);
+        setStats({ pass: 1, fail: 0, total: 1 });
     };
 
     useEffect(() => {

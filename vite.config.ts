@@ -15,7 +15,7 @@ export default defineConfig(({ mode }) => {
         react(),
         VitePWA({
           registerType: 'prompt',
-          includeAssets: ['favicon.ico', 'icons/*.png'],
+          includeAssets: ['favicon.ico', 'icons/*.svg'],
           manifest: {
             name: 'TipTag - Rich Text Editor',
             short_name: 'TipTag',
@@ -26,19 +26,14 @@ export default defineConfig(({ mode }) => {
             start_url: '/',
             icons: [
               {
-                src: '/icons/icon-192.png',
-                sizes: '192x192',
-                type: 'image/png'
+                src: '/icons/icon.svg',
+                sizes: 'any',
+                type: 'image/svg+xml'
               },
               {
-                src: '/icons/icon-512.png',
-                sizes: '512x512',
-                type: 'image/png'
-              },
-              {
-                src: '/icons/icon-512.png',
-                sizes: '512x512',
-                type: 'image/png',
+                src: '/icons/icon.svg',
+                sizes: 'any',
+                type: 'image/svg+xml',
                 purpose: 'maskable'
               }
             ]
