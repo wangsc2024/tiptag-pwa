@@ -113,7 +113,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                                 e.stopPropagation();
                                 if(confirm('Are you sure you want to delete this document?')) onDelete(doc.id);
                             }}
-                            className="opacity-0 group-hover:opacity-100 p-1.5 hover:bg-red-50 hover:text-red-600 rounded-md transition-all"
+                            className="lg:opacity-0 lg:group-hover:opacity-100 opacity-100 p-1.5 hover:bg-red-50 hover:text-red-600 rounded-md transition-all text-gray-400 hover:text-red-600"
                         >
                             <Trash2 className="w-4 h-4" />
                         </button>

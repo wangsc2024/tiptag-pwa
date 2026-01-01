@@ -311,7 +311,7 @@ const Editor: React.FC<EditorProps> = ({ content, title, onUpdate, onTitleChange
             <EditorContent editor={editor} />
         </div>
       </div>
-      
+
       {/* Error Toast */}
       {aiError && (
         <div className="absolute bottom-6 right-6 bg-red-50 text-red-600 px-4 py-3 rounded-lg shadow-lg border border-red-100 flex items-center animate-in slide-in-from-bottom-5">
