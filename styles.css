@@ -17,7 +17,7 @@
   .ProseMirror h1 {
     font-size: 2.25em !important;
     font-weight: 800 !important;
-    line-height: 1.2;
+    line-height: calc(1em + 0.15em);  /* 大字體用較緊的行高 */
     margin-top: 0;
     margin-bottom: 0.3em;
     color: #111827;
@@ -26,7 +26,7 @@
   .ProseMirror h2 {
     font-size: 1.5em !important;
     font-weight: 700 !important;
-    line-height: 1.2;
+    line-height: calc(1em + 0.2em);
     margin-top: 0.8em;
     margin-bottom: 0.2em;
     color: #1f2937;
@@ -35,7 +35,7 @@
   .ProseMirror h3 {
     font-size: 1.25em !important;
     font-weight: 600 !important;
-    line-height: 1.2;
+    line-height: calc(1em + 0.25em);
     margin-top: 0.6em;
     margin-bottom: 0.2em;
     color: #374151;
@@ -44,7 +44,7 @@
   .ProseMirror p {
     margin-top: 0;
     margin-bottom: 0.2em;
-    line-height: 1.3;
+    line-height: calc(1em + 0.35em);  /* 小字體用較鬆的行高 */
   }
 
   .ProseMirror p.is-editor-empty:first-child::before {
@@ -162,7 +162,7 @@
   .ProseMirror li p {
     margin-top: 0 !important;
     margin-bottom: 0 !important;
-    line-height: 1.3 !important;
+    line-height: calc(1em + 0.35em) !important;  /* 動態行高 */
   }
 
   .ProseMirror li > p:only-child {
