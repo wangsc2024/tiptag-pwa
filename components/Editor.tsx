@@ -81,7 +81,7 @@ const Editor: React.FC<EditorProps> = ({ content, title, onUpdate, onTitleChange
     ],
     editorProps: {
         attributes: {
-            class: 'prose prose-lg prose-slate focus:outline-none max-w-none',
+            class: 'prose prose-slate focus:outline-none max-w-none',
         },
         handleClick: (view, pos, event) => {
             const target = event.target as HTMLElement;
