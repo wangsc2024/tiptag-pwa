@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
@@ -6,15 +6,17 @@ import Link from '@tiptap/extension-link';
 import Image from '@tiptap/extension-image';
 import TaskList from '@tiptap/extension-task-list';
 import TaskItem from '@tiptap/extension-task-item';
-import { 
-    Bold, Italic, Strikethrough, Code, Link as LinkIcon, 
+import Highlight from '@tiptap/extension-highlight';
+import Underline from '@tiptap/extension-underline';
+import CharacterCount from '@tiptap/extension-character-count';
+import {
+    Bold, Italic, Strikethrough, Code, Link as LinkIcon,
     List, ListOrdered, CheckSquare, Quote, Minus,
-    Heading1, Heading2, Undo, Redo,
-    Wand2, Check, X, Loader2, Sparkles, AlertCircle,
-    Image as ImageIcon, ExternalLink, ArrowRightCircle
+    Heading1, Heading2, Heading3, Undo, Redo,
+    Image as ImageIcon, ExternalLink, ArrowRightCircle,
+    Underline as UnderlineIcon, Highlighter, FileCode, Type
 } from 'lucide-react';
-import { generateAIContent } from '../services/geminiService';
-import { AISuggestionType, Document } from '../types';
+import { Document } from '../types';
 import LinkModal from './LinkModal';
 import { configureSlashCommand } from './SlashCommand';
 
@@ -28,14 +30,12 @@ interface EditorProps {
 }
 
 const Editor: React.FC<EditorProps> = ({ content, title, onUpdate, onTitleChange, documents, onNavigate }) => {
-  const [isAiLoading, setIsAiLoading] = useState(false);
-  const [aiError, setAiError] = useState<string | null>(null);
-  const [showAiMenu, setShowAiMenu] = useState(false);
   const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
   
   // Custom Menu State
   const [bubbleMenuPos, setBubbleMenuPos] = useState<{top: number, left: number} | null>(null);
   const [floatingMenuPos, setFloatingMenuPos] = useState<{top: number, left: number} | null>(null);
+  const savedSelectionRef = useRef<{from: number, to: number} | null>(null);
 
   const editor = useEditor({
     extensions: [
@@ -49,6 +49,7 @@ const Editor: React.FC<EditorProps> = ({ content, title, onUpdate, onTitleChange
       }),
       Link.configure({
         openOnClick: false,
+        protocols: ['internal', 'mailto', 'tel'],  // Allow internal:// protocol for page links
         HTMLAttributes: {
             class: 'text-indigo-600 underline cursor-pointer',
         },
@@ -60,11 +61,45 @@ const Editor: React.FC<EditorProps> = ({ content, title, onUpdate, onTitleChange
       TaskItem.configure({
         nested: true,
       }),
+      Highlight.configure({
+        multicolor: false,
+        HTMLAttributes: {
+            class: 'bg-yellow-200',
+        },
+      }),
+      Underline,
+      CharacterCount.configure({
+        limit: null,
+      }),
       configureSlashCommand(),
     ],
     editorProps: {
         attributes: {
-            class: 'prose prose-lg prose-slate focus:outline-none max-w-none',
+            class: 'prose prose-slate focus:outline-none max-w-none',
+        },
+        handleClick: (view, pos, event) => {
+            const target = event.target as HTMLElement;
+            const link = target.closest('a');
+            if (link && link.href) {
+                event.preventDefault();
+                const href = link.getAttribute('href') || '';
+                console.log('Link clicked:', { href, linkElement: link.outerHTML });
+                if (href.startsWith('internal://')) {
+                    const docId = href.replace('internal://', '');
+                    console.log('Navigating to internal document:', docId);
+                    onNavigate(docId);
+                } else if (href.startsWith('#')) {
+                    // Anchor link - scroll to element
+                    const element = document.getElementById(href.slice(1));
+                    if (element) {
+                        element.scrollIntoView({ behavior: 'smooth' });
+                    }
+                } else {
+                    window.open(href, '_blank', 'noopener,noreferrer');
+                }
+                return true;
+            }
+            return false;
         },
     },
     content: content,
@@ -113,20 +148,55 @@ const Editor: React.FC<EditorProps> = ({ content, title, onUpdate, onTitleChange
   }, [content, editor]);
 
   const openLinkModal = useCallback(() => {
+      if (editor) {
+        const { from, to } = editor.state.selection;
+        savedSelectionRef.current = { from, to };
+        console.log('Saved selection:', { from, to });
+      }
       setIsLinkModalOpen(true);
-  }, []);
+  }, [editor]);
 
   const handleLinkSave = useCallback((url: string) => {
     if (!editor) return;
-    
-    // If empty, unset
+
+    const selection = savedSelectionRef.current;
+    console.log('handleLinkSave called with url:', url, 'selection:', selection);
+
+    // If empty, unset link
     if (url === '') {
-      editor.chain().focus().extendMarkRange('link').unsetLink().run();
+      if (selection && selection.from !== selection.to) {
+        // Remove link mark using transaction
+        const { from, to } = selection;
+        const linkMark = editor.schema.marks.link;
+        editor.view.dispatch(
+          editor.state.tr.removeMark(from, to, linkMark)
+        );
+      } else {
+        editor.chain().focus().unsetLink().run();
+      }
+      savedSelectionRef.current = null;
       return;
     }
 
-    // Set link
-    editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
+    // Set link using ProseMirror transaction (more reliable)
+    if (selection && selection.from !== selection.to) {
+      console.log('Setting link with selection:', selection);
+      const { from, to } = selection;
+      const linkMark = editor.schema.marks.link.create({ href: url });
+
+      // Use transaction to add mark at saved positions
+      editor.view.dispatch(
+        editor.state.tr.addMark(from, to, linkMark)
+      );
+
+      // Focus editor after setting link
+      editor.commands.focus();
+      console.log('Link set via transaction');
+    } else {
+      console.warn('No valid selection to apply link');
+      editor.chain().focus().setLink({ href: url }).run();
+    }
+    savedSelectionRef.current = null;
   }, [editor]);
 
   const openLink = useCallback(() => {
@@ -155,44 +225,6 @@ const Editor: React.FC<EditorProps> = ({ content, title, onUpdate, onTitleChange
   const addImage = useCallback(() => {
     document.getElementById('hidden-image-input')?.click();
   }, []);
-
-  const handleAiAction = async (type: AISuggestionType) => {
-    if (!editor) return;
-    
-    const { from, to, empty } = editor.state.selection;
-    const selectedText = empty 
-        ? editor.getText() 
-        : editor.state.doc.textBetween(from, to, ' ');
-
-    if (!selectedText.trim()) {
-        setAiError("Please type something or select text first.");
-        setTimeout(() => setAiError(null), 3000);
-        return;
-    }
-
-    setIsAiLoading(true);
-    setAiError(null);
-    setShowAiMenu(false);
-
-    try {
-      const generatedText = await generateAIContent(type, selectedText);
-      
-      if (generatedText) {
-        if (!empty && (type === AISuggestionType.FIX_GRAMMAR || type === AISuggestionType.REPHRASE)) {
-            editor.chain().focus().deleteSelection().insertContent(generatedText).run();
-        } else {
-            const insertion = empty 
-                ? `\n\n${generatedText}` 
-                : `\n\n**AI Suggestion:**\n${generatedText}`;
-            editor.chain().focus().insertContentAt(to, insertion).run();
-        }
-      }
-    } catch (err) {
-      setAiError("AI Request failed. Check your API key or connection.");
-    } finally {
-      setIsAiLoading(false);
-    }
-  };
 
   if (!editor) {
     return null;
@@ -242,65 +274,70 @@ const Editor: React.FC<EditorProps> = ({ content, title, onUpdate, onTitleChange
                 icon={<Italic className="w-4 h-4" />}
                 title="Italic"
             />
-             <ToolbarButton 
+             <ToolbarButton
+                onClick={() => editor.chain().focus().toggleUnderline().run()}
+                isActive={editor.isActive('underline')}
+                icon={<UnderlineIcon className="w-4 h-4" />}
+                title="Underline"
+            />
+             <ToolbarButton
                 onClick={() => editor.chain().focus().toggleStrike().run()}
                 isActive={editor.isActive('strike')}
                 icon={<Strikethrough className="w-4 h-4" />}
                 title="Strikethrough"
             />
-             <ToolbarButton 
+             <ToolbarButton
+                onClick={() => editor.chain().focus().toggleHighlight().run()}
+                isActive={editor.isActive('highlight')}
+                icon={<Highlighter className="w-4 h-4" />}
+                title="Highlight"
+            />
+             <ToolbarButton
                 onClick={() => editor.chain().focus().toggleCode().run()}
                 isActive={editor.isActive('code')}
                 icon={<Code className="w-4 h-4" />}
                 title="Inline Code"
             />
              <div className="w-px h-6 bg-gray-200 mx-2" />
-             <ToolbarButton 
+             <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider hidden md:inline-block mr-2">
+                Blocks
+            </span>
+             <ToolbarButton
+                onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+                isActive={editor.isActive('heading', { level: 1 })}
+                icon={<Heading1 className="w-4 h-4" />}
+                title="Heading 1"
+            />
+             <ToolbarButton
+                onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+                isActive={editor.isActive('heading', { level: 2 })}
+                icon={<Heading2 className="w-4 h-4" />}
+                title="Heading 2"
+            />
+             <ToolbarButton
+                onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+                isActive={editor.isActive('heading', { level: 3 })}
+                icon={<Heading3 className="w-4 h-4" />}
+                title="Heading 3"
+            />
+             <ToolbarButton
+                onClick={() => editor.chain().focus().setParagraph().run()}
+                isActive={editor.isActive('paragraph') && !editor.isActive('heading')}
+                icon={<Type className="w-4 h-4" />}
+                title="Paragraph"
+            />
+             <ToolbarButton
+                onClick={() => editor.chain().focus().toggleCodeBlock().run()}
+                isActive={editor.isActive('codeBlock')}
+                icon={<FileCode className="w-4 h-4" />}
+                title="Code Block"
+            />
+             <div className="w-px h-6 bg-gray-200 mx-2" />
+             <ToolbarButton
                 onClick={addImage}
                 icon={<ImageIcon className="w-4 h-4" />}
                 title="Insert Image"
             />
-        </div>
-
-        {/* AI Section */}
-        <div className="flex items-center space-x-2 ml-auto">
-            {isAiLoading ? (
-                <div className="flex items-center text-indigo-600 text-sm px-3 py-1.5 bg-indigo-50 rounded-full animate-pulse">
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    <span className="font-medium">Thinking...</span>
-                </div>
-            ) : (
-                <div className="relative">
-                    <button
-                        onClick={() => setShowAiMenu(!showAiMenu)}
-                        className="flex items-center space-x-1.5 px-3 py-1.5 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white rounded-full text-sm font-medium transition-all shadow-sm hover:shadow-md"
-                    >
-                        <Sparkles className="w-4 h-4" />
-                        <span>AI Assist</span>
-                    </button>
-                    {showAiMenu && (
-                        <>
-                            <div className="fixed inset-0 z-10" onClick={() => setShowAiMenu(false)} />
-                            <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-20 animate-in fade-in slide-in-from-top-2 duration-200">
-                                <div className="p-2 space-y-1">
-                                    <div className="px-2 py-1.5 text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                                        Selection Actions
-                                    </div>
-                                    <AiMenuItem icon={<Wand2 className="w-4 h-4" />} label="Fix Grammar" onClick={() => handleAiAction(AISuggestionType.FIX_GRAMMAR)} />
-                                    <AiMenuItem icon={<Check className="w-4 h-4" />} label="Summarize" onClick={() => handleAiAction(AISuggestionType.SUMMARIZE)} />
-                                    <AiMenuItem icon={<List className="w-4 h-4" />} label="Rephrase" onClick={() => handleAiAction(AISuggestionType.REPHRASE)} />
-                                     <div className="my-1 border-t border-gray-100" />
-                                    <div className="px-2 py-1.5 text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                                        Generation
-                                    </div>
-                                    <AiMenuItem icon={<Sparkles className="w-4 h-4" />} label="Continue Writing" onClick={() => handleAiAction(AISuggestionType.EXPAND)} />
-                                     <AiMenuItem icon={<Heading1 className="w-4 h-4" />} label="Generate Ideas" onClick={() => handleAiAction(AISuggestionType.GENERATE_IDEAS)} />
-                                </div>
-                            </div>
-                        </>
-                    )}
-                </div>
-            )}
         </div>
       </div>
 
@@ -321,7 +358,7 @@ const Editor: React.FC<EditorProps> = ({ content, title, onUpdate, onTitleChange
       {/* Bubble Menu (Selection) */}
       {bubbleMenuPos && (
         <div 
-            className="fixed z-50 flex items-center space-x-1 bg-white shadow-xl border border-gray-200 rounded-lg p-1.5 overflow-hidden animate-in fade-in zoom-in-95 duration-100"
+            className="fixed z-50 flex items-center space-x-1 bg-white shadow-xl border border-gray-200 rounded-lg p-1.5 overflow-hidden"
             style={{ 
                 top: bubbleMenuPos.top - 50, 
                 left: bubbleMenuPos.left,
@@ -331,30 +368,30 @@ const Editor: React.FC<EditorProps> = ({ content, title, onUpdate, onTitleChange
         >
             <ToolbarButton onClick={() => editor.chain().focus().toggleBold().run()} isActive={editor.isActive('bold')} icon={<Bold className="w-4 h-4" />} title="Bold" />
             <ToolbarButton onClick={() => editor.chain().focus().toggleItalic().run()} isActive={editor.isActive('italic')} icon={<Italic className="w-4 h-4" />} title="Italic" />
+            <ToolbarButton onClick={() => editor.chain().focus().toggleUnderline().run()} isActive={editor.isActive('underline')} icon={<UnderlineIcon className="w-4 h-4" />} title="Underline" />
             <ToolbarButton onClick={() => editor.chain().focus().toggleStrike().run()} isActive={editor.isActive('strike')} icon={<Strikethrough className="w-4 h-4" />} title="Strikethrough" />
+            <ToolbarButton onClick={() => editor.chain().focus().toggleHighlight().run()} isActive={editor.isActive('highlight')} icon={<Highlighter className="w-4 h-4" />} title="Highlight" />
             <ToolbarButton onClick={() => editor.chain().focus().toggleCode().run()} isActive={editor.isActive('code')} icon={<Code className="w-4 h-4" />} title="Code" />
             <div className="w-px h-4 bg-gray-200 mx-1" />
             <ToolbarButton onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} isActive={editor.isActive('heading', { level: 1 })} icon={<Heading1 className="w-4 h-4" />} title="H1" />
             <ToolbarButton onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} isActive={editor.isActive('heading', { level: 2 })} icon={<Heading2 className="w-4 h-4" />} title="H2" />
+            <ToolbarButton onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()} isActive={editor.isActive('heading', { level: 3 })} icon={<Heading3 className="w-4 h-4" />} title="H3" />
             <div className="w-px h-4 bg-gray-200 mx-1" />
             <ToolbarButton onClick={openLinkModal} isActive={editor.isActive('link')} icon={<LinkIcon className="w-4 h-4" />} title="Link" />
             {editor.isActive('link') && (
-                <ToolbarButton 
+                <ToolbarButton
                     onClick={openLink}
                     icon={editor.getAttributes('link').href?.startsWith('internal://') ? <ArrowRightCircle className="w-4 h-4" /> : <ExternalLink className="w-4 h-4" />}
                     title={editor.getAttributes('link').href?.startsWith('internal://') ? "Go to Page" : "Open Link"}
                 />
             )}
-            <button onClick={() => handleAiAction(AISuggestionType.FIX_GRAMMAR)} className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded transition-colors" title="Fix Grammar">
-                <Wand2 className="w-4 h-4" />
-            </button>
         </div>
       )}
 
       {/* Floating Menu (Empty Line) */}
       {floatingMenuPos && (
         <div 
-            className="fixed z-50 flex items-center space-x-1 bg-white shadow-xl border border-gray-200 rounded-lg p-1.5 overflow-hidden animate-in slide-in-from-left-2 fade-in duration-100"
+            className="fixed z-50 flex items-center space-x-1 bg-white shadow-xl border border-gray-200 rounded-lg p-1.5 overflow-hidden"
             style={{
                 top: floatingMenuPos.top,
                 left: floatingMenuPos.left,
@@ -375,7 +412,7 @@ const Editor: React.FC<EditorProps> = ({ content, title, onUpdate, onTitleChange
         </div>
       )}
 
-      <LinkModal 
+      <LinkModal
         isOpen={isLinkModalOpen}
         onClose={() => setIsLinkModalOpen(false)}
         onSave={handleLinkSave}
@@ -383,16 +420,16 @@ const Editor: React.FC<EditorProps> = ({ content, title, onUpdate, onTitleChange
         initialUrl={editor.getAttributes('link').href}
       />
 
-      {/* Error Toast */}
-      {aiError && (
-        <div className="absolute bottom-6 right-6 bg-red-50 text-red-600 px-4 py-3 rounded-lg shadow-lg border border-red-100 flex items-center animate-in slide-in-from-bottom-5">
-            <AlertCircle className="w-5 h-5 mr-2" />
-            <span className="text-sm font-medium">{aiError}</span>
-            <button onClick={() => setAiError(null)} className="ml-4 hover:bg-red-100 p-1 rounded">
-                <X className="w-4 h-4" />
-            </button>
+      {/* Character Count */}
+      <div className="sticky bottom-0 z-10 flex items-center justify-between px-4 py-2 bg-gray-50 border-t border-gray-100 text-xs text-gray-500">
+        <div className="flex items-center space-x-4">
+          <span>{editor.storage.characterCount.characters()} characters</span>
+          <span>{editor.storage.characterCount.words()} words</span>
         </div>
-      )}
+        <div className="flex items-center space-x-2">
+          <span className="text-gray-400">Saved automatically</span>
+        </div>
+      </div>
     </div>
   );
 };

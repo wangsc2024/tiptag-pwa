@@ -3,11 +3,12 @@ import Sidebar from './components/Sidebar';
 import Editor from './components/Editor';
 import TemplateModal from './components/TemplateModal';
 import GitHubSyncModal from './components/GitHubSyncModal';
-import TestRunnerUI from './components/TestRunnerUI';
+// TestRunnerUI removed - use CLI: npm run test:run
+// import UpdatePrompt from './components/UpdatePrompt';
 import { Document } from './types';
 import { Template } from './services/templates';
 import { getDocuments, saveDocuments, createDocument, updateDocument, deleteDocument } from './services/storage';
-import { Menu, Beaker } from 'lucide-react';
+import { Menu } from 'lucide-react';
 
 const App: React.FC = () => {
   const [documents, setDocuments] = useState<Document[]>([]);
@@ -15,7 +16,6 @@ const App: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
   const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
-  const [isTestRunnerOpen, setIsTestRunnerOpen] = useState(false);
 
   // Load documents on mount
   useEffect(() => {
@@ -106,22 +106,11 @@ const App: React.FC = () => {
       <div className="flex-1 flex flex-col h-full min-w-0 relative">
         {/* Mobile Sidebar Toggle */}
         <div className="lg:hidden absolute top-4 left-4 z-20">
-             <button 
+             <button
                 onClick={() => setIsSidebarOpen(true)}
                 className="p-2 bg-white rounded-md shadow-sm border border-gray-200 text-gray-500"
              >
                 <Menu className="w-5 h-5" />
-             </button>
-        </div>
-        
-        {/* Test Runner Button (Dev Mode) */}
-        <div className="absolute top-4 right-4 z-20">
-             <button 
-                onClick={() => setIsTestRunnerOpen(true)}
-                className="p-2 bg-gray-100 hover:bg-gray-200 rounded-md text-gray-600 transition-colors"
-                title="Run Tests"
-             >
-                <Beaker className="w-5 h-5" />
              </button>
         </div>
 
@@ -161,11 +150,6 @@ const App: React.FC = () => {
         onClose={() => setIsSyncModalOpen(false)}
         documents={documents}
         onPullComplete={handlePullComplete}
-      />
-
-      <TestRunnerUI 
-        isOpen={isTestRunnerOpen}
-        onClose={() => setIsTestRunnerOpen(false)}
       />
     </div>
   );

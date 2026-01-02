@@ -1,5 +1,5 @@
 
-import { describe, it, expect, vi, beforeEach } from '../lib/vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { syncToGithub, saveGithubConfig, _setOctokitClass } from './githubService';
 
 describe('GitHub Service', () => {
@@ -42,10 +42,12 @@ describe('GitHub Service', () => {
 
     it('should handle push failures gracefully', async () => {
          saveGithubConfig({ token: 'abc', owner: 'me', repo: 'notes' });
-         
-         // Simulate API failure
-         mockGetContent.mockRejectedValue({ status: 500 }); // Unexpected error during check
-         
+
+         // Simulate getContent success (file exists)
+         mockGetContent.mockResolvedValue({ data: { sha: 'abc123' } });
+         // Simulate createOrUpdate failure
+         mockCreateOrUpdate.mockRejectedValue({ status: 500, message: 'Server error' });
+
          const docs = [{ id: '1', title: 'Test', content: '<p>Hi</p>', updatedAt: 123 }];
          const result = await syncToGithub(docs);
 

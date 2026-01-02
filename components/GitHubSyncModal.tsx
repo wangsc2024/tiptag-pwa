@@ -77,7 +77,7 @@ const GitHubSyncModal: React.FC<GitHubSyncModalProps> = ({ isOpen, onClose, docu
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden">
                 <div className="flex items-center justify-between p-6 border-b border-gray-100 bg-gray-50">
                     <div className="flex items-center space-x-2 text-gray-900">
                         <Github className="w-5 h-5" />
