@@ -13,13 +13,10 @@ import {
     Bold, Italic, Strikethrough, Code, Link as LinkIcon,
     List, ListOrdered, CheckSquare, Quote, Minus,
     Heading1, Heading2, Heading3, Undo, Redo,
-    Wand2, Check, X, Loader2, Sparkles, AlertCircle,
     Image as ImageIcon, ExternalLink, ArrowRightCircle,
     Underline as UnderlineIcon, Highlighter, FileCode, Type
 } from 'lucide-react';
-// AI disabled for debugging
-// import { generateAIContent } from '../services/geminiService';
-import { AISuggestionType, Document } from '../types';
+import { Document } from '../types';
 import LinkModal from './LinkModal';
 import { configureSlashCommand } from './SlashCommand';
 
@@ -33,9 +30,6 @@ interface EditorProps {
 }
 
 const Editor: React.FC<EditorProps> = ({ content, title, onUpdate, onTitleChange, documents, onNavigate }) => {
-  const [isAiLoading, setIsAiLoading] = useState(false);
-  const [aiError, setAiError] = useState<string | null>(null);
-  const [showAiMenu, setShowAiMenu] = useState(false);
   const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
   
   // Custom Menu State
@@ -232,13 +226,6 @@ const Editor: React.FC<EditorProps> = ({ content, title, onUpdate, onTitleChange
     document.getElementById('hidden-image-input')?.click();
   }, []);
 
-  const handleAiAction = async (type: AISuggestionType) => {
-    // AI functionality disabled
-    setAiError("AI features are currently disabled.");
-    setTimeout(() => setAiError(null), 3000);
-    setShowAiMenu(false);
-  };
-
   if (!editor) {
     return null;
   }
@@ -352,47 +339,6 @@ const Editor: React.FC<EditorProps> = ({ content, title, onUpdate, onTitleChange
                 title="Insert Image"
             />
         </div>
-
-        {/* AI Section */}
-        <div className="flex items-center space-x-2 ml-auto">
-            {isAiLoading ? (
-                <div className="flex items-center text-indigo-600 text-sm px-3 py-1.5 bg-indigo-50 rounded-full animate-pulse">
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    <span className="font-medium">Thinking...</span>
-                </div>
-            ) : (
-                <div className="relative">
-                    <button
-                        onClick={() => setShowAiMenu(!showAiMenu)}
-                        className="flex items-center space-x-1.5 px-3 py-1.5 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white rounded-full text-sm font-medium transition-all shadow-sm hover:shadow-md"
-                    >
-                        <Sparkles className="w-4 h-4" />
-                        <span>AI Assist</span>
-                    </button>
-                    {showAiMenu && (
-                        <>
-                            <div className="fixed inset-0 z-10" onClick={() => setShowAiMenu(false)} />
-                            <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-20">
-                                <div className="p-2 space-y-1">
-                                    <div className="px-2 py-1.5 text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                                        Selection Actions
-                                    </div>
-                                    <AiMenuItem icon={<Wand2 className="w-4 h-4" />} label="Fix Grammar" onClick={() => handleAiAction(AISuggestionType.FIX_GRAMMAR)} />
-                                    <AiMenuItem icon={<Check className="w-4 h-4" />} label="Summarize" onClick={() => handleAiAction(AISuggestionType.SUMMARIZE)} />
-                                    <AiMenuItem icon={<List className="w-4 h-4" />} label="Rephrase" onClick={() => handleAiAction(AISuggestionType.REPHRASE)} />
-                                     <div className="my-1 border-t border-gray-100" />
-                                    <div className="px-2 py-1.5 text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                                        Generation
-                                    </div>
-                                    <AiMenuItem icon={<Sparkles className="w-4 h-4" />} label="Continue Writing" onClick={() => handleAiAction(AISuggestionType.EXPAND)} />
-                                     <AiMenuItem icon={<Heading1 className="w-4 h-4" />} label="Generate Ideas" onClick={() => handleAiAction(AISuggestionType.GENERATE_IDEAS)} />
-                                </div>
-                            </div>
-                        </>
-                    )}
-                </div>
-            )}
-        </div>
       </div>
 
       {/* Editor Area */}
@@ -433,15 +379,12 @@ const Editor: React.FC<EditorProps> = ({ content, title, onUpdate, onTitleChange
             <div className="w-px h-4 bg-gray-200 mx-1" />
             <ToolbarButton onClick={openLinkModal} isActive={editor.isActive('link')} icon={<LinkIcon className="w-4 h-4" />} title="Link" />
             {editor.isActive('link') && (
-                <ToolbarButton 
+                <ToolbarButton
                     onClick={openLink}
                     icon={editor.getAttributes('link').href?.startsWith('internal://') ? <ArrowRightCircle className="w-4 h-4" /> : <ExternalLink className="w-4 h-4" />}
                     title={editor.getAttributes('link').href?.startsWith('internal://') ? "Go to Page" : "Open Link"}
                 />
             )}
-            <button onClick={() => handleAiAction(AISuggestionType.FIX_GRAMMAR)} className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded transition-colors" title="Fix Grammar">
-                <Wand2 className="w-4 h-4" />
-            </button>
         </div>
       )}
 
@@ -487,17 +430,6 @@ const Editor: React.FC<EditorProps> = ({ content, title, onUpdate, onTitleChange
           <span className="text-gray-400">Saved automatically</span>
         </div>
       </div>
-
-      {/* Error Toast */}
-      {aiError && (
-        <div className="absolute bottom-6 right-6 bg-red-50 text-red-600 px-4 py-3 rounded-lg shadow-lg border border-red-100 flex items-center">
-            <AlertCircle className="w-5 h-5 mr-2" />
-            <span className="text-sm font-medium">{aiError}</span>
-            <button onClick={() => setAiError(null)} className="ml-4 hover:bg-red-100 p-1 rounded">
-                <X className="w-4 h-4" />
-            </button>
-        </div>
-      )}
     </div>
   );
 };
