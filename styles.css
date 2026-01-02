@@ -8,43 +8,52 @@
     min-height: 300px;
   }
 
-  /* Override prose spacing for tighter layout */
-  .prose.ProseMirror > * + * {
+  /* Override ALL prose spacing aggressively */
+  .prose.ProseMirror > * + *,
+  .prose.ProseMirror * + * {
     margin-top: 0.1em !important;
   }
 
+  .prose.ProseMirror > *:first-child {
+    margin-top: 0 !important;
+  }
+
   /* Explicit heading styles for ProseMirror */
+  .prose.ProseMirror h1,
   .ProseMirror h1 {
     font-size: 2.25em !important;
     font-weight: 800 !important;
-    line-height: calc(1em + 0.13em);  /* 大字體用較緊的行高 */
-    margin-top: 0;
-    margin-bottom: 0.1em;
+    line-height: calc(1em + 0.13em) !important;
+    margin-top: 0 !important;
+    margin-bottom: 0.1em !important;
     color: #111827;
   }
 
+  .prose.ProseMirror h2,
   .ProseMirror h2 {
     font-size: 1.5em !important;
     font-weight: 700 !important;
-    line-height: calc(1em + 0.17em);
-    margin-top: 0.5em;
-    margin-bottom: 0.1em;
+    line-height: calc(1em + 0.17em) !important;
+    margin-top: 0.3em !important;
+    margin-bottom: 0.1em !important;
     color: #1f2937;
   }
 
+  .prose.ProseMirror h3,
   .ProseMirror h3 {
     font-size: 1.25em !important;
     font-weight: 600 !important;
-    line-height: calc(1em + 0.21em);
-    margin-top: 0.4em;
-    margin-bottom: 0.1em;
+    line-height: calc(1em + 0.21em) !important;
+    margin-top: 0.2em !important;
+    margin-bottom: 0.1em !important;
     color: #374151;
   }
 
+  .prose.ProseMirror p,
   .ProseMirror p {
-    margin-top: 0;
-    margin-bottom: 0.1em;
-    line-height: calc(1em + 0.30em);  /* 小字體用較鬆的行高 */
+    margin-top: 0 !important;
+    margin-bottom: 0.1em !important;
+    line-height: calc(1em + 0.30em) !important;
   }
 
   .ProseMirror p.is-editor-empty:first-child::before {
@@ -117,17 +126,19 @@
   }
 
   /* Unordered List Styles */
+  .prose.ProseMirror ul:not([data-type="taskList"]),
   .ProseMirror ul:not([data-type="taskList"]) {
     list-style-type: disc !important;
-    padding-left: 1.5em;
-    margin-top: 0.1em;
-    margin-bottom: 0.1em;
+    padding-left: 1.5em !important;
+    margin-top: 0.1em !important;
+    margin-bottom: 0.1em !important;
   }
 
+  .prose.ProseMirror ul ul,
   .ProseMirror ul ul {
     list-style-type: circle !important;
-    margin-top: 0;
-    margin-bottom: 0;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
   }
 
   .ProseMirror ul ul ul {
@@ -135,23 +146,26 @@
   }
 
   /* Ordered List Styles */
+  .prose.ProseMirror ol,
   .ProseMirror ol {
     list-style-type: decimal !important;
-    padding-left: 1.5em;
-    margin-top: 0.1em;
-    margin-bottom: 0.1em;
+    padding-left: 1.5em !important;
+    margin-top: 0.1em !important;
+    margin-bottom: 0.1em !important;
   }
 
+  .prose.ProseMirror ol ol,
   .ProseMirror ol ol {
     list-style-type: lower-alpha !important;
-    margin-top: 0;
-    margin-bottom: 0;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
   }
 
   .ProseMirror ol ol ol {
     list-style-type: lower-roman !important;
   }
 
+  .prose.ProseMirror li,
   .ProseMirror li {
     margin-top: 0 !important;
     margin-bottom: 0 !important;
@@ -159,10 +173,11 @@
     padding-bottom: 0 !important;
   }
 
+  .prose.ProseMirror li p,
   .ProseMirror li p {
     margin-top: 0 !important;
     margin-bottom: 0 !important;
-    line-height: calc(1em + 0.30em) !important;  /* 動態行高 */
+    line-height: calc(1em + 0.30em) !important;
   }
 
   .ProseMirror li > p:only-child {
